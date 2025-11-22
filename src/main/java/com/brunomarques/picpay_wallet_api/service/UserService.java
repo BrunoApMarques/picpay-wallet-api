@@ -4,6 +4,7 @@ package com.brunomarques.picpay_wallet_api.service;
 import com.brunomarques.picpay_wallet_api.domain.User;
 import com.brunomarques.picpay_wallet_api.dto.CreateUserRequest;
 import com.brunomarques.picpay_wallet_api.dto.UserResponse;
+import com.brunomarques.picpay_wallet_api.exception.UserNotFoundException;
 import com.brunomarques.picpay_wallet_api.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -60,6 +61,24 @@ public class UserService {
                 saved.getEmail(),
                 saved.getBalance(),
                 saved.getCreatedAt()
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public UserResponse getUserById(Long id) {
+
+        // 1) Busca o usuário no banco
+        var user = userRepository.findById(id)
+                .orElseThrow(() -> new UserNotFoundException(id));
+
+        // 2) Converte a entidade para DTO de resposta
+        return new UserResponse(
+                user.getId(),
+                user.getFullName(),
+                user.getDocument(),
+                user.getEmail(),
+                user.getBalance(),
+                user.getCreatedAt()
         );
     }
 }
