@@ -14,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import java.util.List;
+
 @Service
 public class TransactionService {
 
@@ -74,6 +76,30 @@ public class TransactionService {
                 saved.getAmount(),
                 saved.getCreatedAt()
         );
+    }
+
+    @Transactional(readOnly = true)
+    public List<TransactionResponse> getTransactionsByUser(Long userId) {
+
+        // 1) Garante que o usuário existe
+        boolean exists = userRepository.existsById(userId);
+        if (!exists) {
+            throw new UserNotFoundException(userId);
+        }
+
+        // 2) Busca todas as transações onde ele é payer ou payee
+        var transactions = transactionRepository.findByPayer_IdOrPayee_Id(userId, userId);
+
+        // 3) Converte Transaction -> TransactionResponse
+        return transactions.stream()
+                .map(t -> new TransactionResponse(
+                        t.getId(),
+                        t.getPayer().getId(),
+                        t.getPayee().getId(),
+                        t.getAmount(),
+                        t.getCreatedAt()
+                ))
+                .toList();
     }
 }
 
