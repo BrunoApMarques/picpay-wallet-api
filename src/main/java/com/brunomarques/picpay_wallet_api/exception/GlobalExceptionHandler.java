@@ -6,6 +6,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.brunomarques.picpay_wallet_api.exception.InsufficientBalanceException;
+
 import java.time.Instant;
 
 @RestControllerAdvice
@@ -40,6 +42,24 @@ public class GlobalExceptionHandler {
                 Instant.now(),
                 status.value(),
                 "Requisição inválida",
+                ex.getMessage(),
+                request.getRequestURI()
+        );
+
+        return ResponseEntity.status(status).body(body);
+    }
+
+    @ExceptionHandler(InsufficientBalanceException.class)
+    public ResponseEntity<ErrorResponse> handleInsufficientBalance(
+            InsufficientBalanceException ex,
+            HttpServletRequest request
+    ) {
+        HttpStatus status = HttpStatus.UNPROCESSABLE_ENTITY; // 422
+
+        ErrorResponse body = new ErrorResponse(
+                Instant.now(),
+                status.value(),
+                "Saldo insuficiente",
                 ex.getMessage(),
                 request.getRequestURI()
         );
